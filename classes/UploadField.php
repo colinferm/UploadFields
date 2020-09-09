@@ -256,7 +256,8 @@ class UploadField {
 				$options = [];
 				while ($row = $results->fetchObject()) {
 					$category = Category::newFromRow($row);
-					$options[$category->getName()] = $category->getName();
+					$catTitle = $category->getTitle();
+					$options["{$catTitle}"] = $catTitle;
 				}
 				$parameters['options'] = $options;
 				$parameters['class'] = 'HTMLMultiSelectField';

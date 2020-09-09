@@ -49,19 +49,35 @@ class Hooks {
 		if (!empty($fields)) {
 			$fileInfo = [];
 			$request = $specialUpload->getRequest();
+			//print_r($request);
+			//print_r($fields);
+			$categories = [];
 
 			// $fileInfo[] = "summary=".str_replace('|', '{{!}}', $request->getText("wpUploadDescription"));
 			$fileInfo[] = "summary=" . $request->getText("wpUploadDescription");
 
 			foreach ($fields as $field) {
-				$value = $request->getVal($field->getKey());
-				if ($value !== null) {
-					$fileInfo[] = $field->getWikiText($value);
+				if ($field->getType() == 'category') {
+					$cats = $request->getArray($field->getKey());
+					$categories = array_merge($categories, $cats);
+					$ccount = count($categories);
+				} else {
+					$value = $request->getVal($field->getKey());
+					if ($value !== null) {
+						$fileInfo[] = $field->getWikiText($value);
+					}
 				}
 			}
 
 			if (!empty($fileInfo)) {
 				$fileInfoText = "{{FileInfo\n|" . implode("\n|", $fileInfo) . "\n}}";
+
+				if (count($categories)) {
+					foreach($categories as $cat) {
+						wfDebugLog("extensions", "Adding category: {$cat}");
+						$fileInfoText .= "\n[[{$cat}]]";
+					}
+				}
 
 				$currentText = (empty($currentText) ? $fileInfoText : $currentText . "\n\n" . $fileInfoText);
 				$newContent = ContentHandler::makeContent($currentText, $specialUpload->mLocalFile->getTitle());
